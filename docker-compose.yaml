@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: balance-transfer-default
+    container_name: balance-transfer-defaulat
     ports:
       - '4000:4000'
     command: |
