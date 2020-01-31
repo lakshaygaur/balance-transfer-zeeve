@@ -1,0 +1,14 @@
+version: "2.0"
+
+services:
+  balance-transfer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: balance-transfer-default
+    ports:
+      - '4000:4000'
+    command: |
+      bash -c "PORT=4000 node app"
+    restart: always
+
