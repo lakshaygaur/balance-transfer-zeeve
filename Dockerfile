@@ -1,6 +1,5 @@
 FROM node:8.9.0
 
-
 #COPY package*.json ./
 WORKDIR /balance-transfer
 
