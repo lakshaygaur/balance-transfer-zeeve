@@ -27,8 +27,8 @@ spec:
         name: balance-transfer
     spec:
       volumes:
-        - name: balance-transfer-data
-          persistentVolumeClaim:
+        #- name: balance-transfer-data
+        #  persistentVolumeClaim:
             claimName: balance-transfer-data-pvc
             @@replace_my_crypto_artifacts@@
       imagePullSecrets:
@@ -56,26 +56,27 @@ spec:
               source /root/.bashrc
 
               echo "configuring application"
+              mkdir /application
               cd /application
               cp -r /balance-transfer/* ./
               cp -Lr /crypto-data/* ./artifacts/
               #npm install
               node app
           volumeMounts:
-            - mountPath: /application
-              name: balance-transfer-data
+            #- mountPath: /application
+            #  name: balance-transfer-data
               @@replace_my_crypto_artifacts@@
----
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: balance-transfer-data-pvc
-spec:
-  accessModes:
-    - "ReadWriteOnce"
-  resources:
-    requests:
-      storage: "5Gi"
+#---
+#kind: PersistentVolumeClaim
+#apiVersion: v1
+#metadata:
+#  name: balance-transfer-data-pvc
+#spec:
+#  accessModes:
+#    - "ReadWriteOnce"
+#  resources:
+#    requests:
+#      storage: "5Gi"
 
 ---
 apiVersion: extensions/v1beta1
