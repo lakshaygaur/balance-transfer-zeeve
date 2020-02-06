@@ -59,7 +59,7 @@ spec:
               cd /application
               cp -r /balance-transfer/* ./
               cp -Lr /crypto-data/* ./artifacts/
-              npm install
+              #npm install
               node app
           volumeMounts:
             - mountPath: /application
