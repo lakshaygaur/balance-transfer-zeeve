@@ -5,4 +5,5 @@ WORKDIR /balance-transfer
 
 COPY . .
 ENV PORT=4000
-CMD npm install && node app
+RUN npm install
+CMD node app
