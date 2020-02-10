@@ -29,13 +29,13 @@ spec:
       volumes:
         #- name: balance-transfer-data
         #  persistentVolumeClaim:
-            claimName: balance-transfer-data-pvc
+        #    claimName: balance-transfer-data-pvc
             @@replace_my_crypto_artifacts@@
       imagePullSecrets:
       - name: container-registry-cred
       containers:
         - name: balance-transfer
-          image: image_url
+          image: @@image_urlsl@@
           imagePullPolicy: Always
           ports:
             - containerPort: 4000
@@ -88,7 +88,7 @@ metadata:
     nginx.ingress.kubernetes.io/backend-protocol: "http"
 spec:
   rules:
-    - host: application_domain
+    - host: @@application_domains@@
       http:
         paths:
         - backend:
