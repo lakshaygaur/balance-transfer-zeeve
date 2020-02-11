@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: balance-transfer:latest
     container_name: balance-transfer-default
     ports:
       - '4000:4000'

@@ -35,7 +35,7 @@ spec:
       - name: container-registry-cred
       containers:
         - name: balance-transfer
-          image: @@image_urlsl@@
+          image: balance-transfer:12
           imagePullPolicy: Always
           ports:
             - containerPort: 4000
@@ -88,7 +88,7 @@ metadata:
     nginx.ingress.kubernetes.io/backend-protocol: "http"
 spec:
   rules:
-    - host: @@application_domains@@
+    - host: @@application_domain@@
       http:
         paths:
         - backend:
