@@ -94,6 +94,3 @@ spec:
         - backend:
             serviceName: balance-transfer-svc
             servicePort: 4000
-
-curl -s -X POST \
-xvf
