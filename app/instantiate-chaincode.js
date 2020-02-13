@@ -52,15 +52,6 @@ const instantiateChaincode = async function(peers, channelName, chaincodeName, c
 
 			// Use this to demonstrate the following policy:
 			// The policy can be fulfilled when members from both orgs signed.
-			'endorsement-policy': {
-			        identities: [
-					{ role: { name: 'member', mspId: 'Org1MSP' }},
-					{ role: { name: 'member', mspId: 'Org2MSP' }}
-			        ],
-			        policy: {
-					'2-of':[{ 'signed-by': 0 }, { 'signed-by': 1 }]
-			        }
-		        }
 		};
 
 		if (functionName)
