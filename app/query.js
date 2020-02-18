@@ -44,15 +44,28 @@ var queryChaincode = async function(peer, channelName, chaincodeName, args, fcn,
 				logger.info(args[0]+' now has ' + response_payloads[i].toString('utf8') +
 					' after the move');
 			}
-			return args[0]+' now has ' + response_payloads[0].toString('utf8') +
-				' after the move';
+			return {
+				success: true,
+				value: {
+					user: args[0],
+					asset: response_payloads[0].toString('utf8')
+				},
+				message: args[0]+' now has ' + response_payloads[0].toString('utf8') +
+				' after the move'
+			}
 		} else {
 			logger.error('response_payloads is null');
-			return 'response_payloads is null';
+			return {
+				success: false,
+				message: 'response_payloads is null'
+			};
 		}
 	} catch(error) {
 		logger.error('Failed to query due to error: ' + error.stack ? error.stack : error);
-		return error.toString();
+		return {
+			success: false,
+			message: error.toString()
+		};
 	} finally {
 		if (channel) {
 			channel.close();

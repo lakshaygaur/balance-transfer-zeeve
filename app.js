@@ -27,6 +27,7 @@ var expressJWT = require('express-jwt');
 var jwt = require('jsonwebtoken');
 var bearerToken = require('express-bearer-token');
 var cors = require('cors');
+const path = require('path');
 
 require('./config.js');
 var hfc = require('fabric-client');
@@ -39,6 +40,8 @@ var install = require('./app/install-chaincode.js');
 var instantiate = require('./app/instantiate-chaincode.js');
 var invoke = require('./app/invoke-transaction.js');
 var query = require('./app/query.js');
+const route = require('./routes/index');
+
 var host = process.env.HOST || hfc.getConfigSetting('host');
 var port = process.env.PORT || hfc.getConfigSetting('port');
 ///////////////////////////////////////////////////////////////////////////////
@@ -46,23 +49,27 @@ var port = process.env.PORT || hfc.getConfigSetting('port');
 ///////////////////////////////////////////////////////////////////////////////
 app.options('*', cors());
 app.use(cors());
+app.use(express.static(path.join(__dirname, "/public")));
 //support parsing of application/json type post data
 app.use(bodyParser.json());
 //support parsing of application/x-www-form-urlencoded post data
 app.use(bodyParser.urlencoded({
 	extended: false
 }));
+app.set('views', './views');
+app.set('view engine', 'ejs');
 // set secret variable
 app.set('secret', 'thisismysecret');
 app.use(expressJWT({
 	secret: 'thisismysecret'
 }).unless({
-	path: ['/users']
+	path: ['/users', '/']
 }));
 app.use(bearerToken());
 app.use(function(req, res, next) {
 	logger.debug(' ------>>>>>> new request for %s',req.originalUrl);
-	if (req.originalUrl.indexOf('/users') >= 0) {
+	if (req.originalUrl.indexOf('/users') >= 0
+	|| req.originalUrl == '/') {
 		return next();
 	}
 
@@ -86,6 +93,8 @@ app.use(function(req, res, next) {
 		}
 	});
 });
+
+app.use('/', route);
 
 ///////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// START SERVER /////////////////////////////////
@@ -131,6 +140,16 @@ app.post('/users', async function(req, res) {
 	if (response && typeof response !== 'string') {
 		logger.debug('Successfully registered the username %s for organization %s',username,orgName);
 		response.token = token;
+		let users = hfc.getConfigSetting("users");
+		if(!users)
+			users = []
+		const user = {
+			username,
+			orgName,
+			token
+		};
+		users[username] = user;
+		hfc.setConfigSetting("users", users);
 		res.json(response);
 	} else {
 		logger.debug('Failed to register the username %s for organization %s with::%s',username,orgName,response);
@@ -273,6 +292,8 @@ app.post('/channels/:channelName/chaincodes', async function(req, res) {
 	}
 
 	let message = await instantiate.instantiateChaincode(peers, channelName, chaincodeName, chaincodeVersion, chaincodeType, fcn, args, req.username, req.orgname);
+	if(message.success)
+		hfc.setConfigSetting("chaincodeName") = chaincodeName;
 	res.send(message);
 });
 // Invoke transaction on chaincode on target peers
@@ -341,8 +362,8 @@ app.get('/channels/:channelName/chaincodes/:chaincodeName', async function(req, 
 	args = JSON.parse(args);
 	logger.debug(args);
 
-	let message = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname);
-	res.send(message);
+	let response = await query.queryChaincode(peer, channelName, chaincodeName, args, fcn, req.username, req.orgname);
+	res.send(response.message);
 });
 //  Query Get Block by BlockNumber
 app.get('/channels/:channelName/blocks/:blockId', async function(req, res) {

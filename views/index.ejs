@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="main.css">
+</head>
+
+<body>
+    <header class="mb-5">
+        <h1>Balance Transfer</h1>
+    </header>
+
+    <main>
+        <div class="d-flex justify-content-around">
+            <div id="c1" class="card" style="width: 18rem;">
+                <div class="card-header">
+                    <h2 class="card-title text-center text-capitalize m-0"><%= u1.username %></h2>
+                </div>
+                <div class="card-body d-flex flex-column align-items-center justify-content-around">
+                    <div class="user-logo">
+                        <h4 class="m-0 text-uppercase"><%= u1.username.substring(0,1) %></h4>
+                    </div>
+                    <h4>Assets : &nbsp;&nbsp; <span id="u1-asset"><%= u1.asset %></span></h4>
+                </div>
+                <div class="card-footer d-flex justify-content-center">
+                    <input type="number" name="value1" id="u1-sent-asset" placeholder="100">
+                    <button id="u1-btn" class="btn btn-outline-success">Send</button>
+                </div>
+            </div>
+            <div id="c2" class="card" style="width: 18rem;">
+                <div class="card-header">
+                    <h2 class="card-title text-center text-capitalize m-0"><%= u2.username %></h2>
+                </div>
+                <div class="card-body d-flex flex-column align-items-center justify-content-around">
+                    <div class="user-logo">
+                        <h4 class="m-0 text-uppercase"><%= u2.username.substring(0,1) %></h4>
+                    </div>
+                    <h4>Assets : &nbsp;&nbsp; <span id="u2-asset"><%= u2.asset %></span></h4>
+                </div>
+                <div class="card-footer d-flex justify-content-center">
+                    <input type="number" name="value1" id="u2-sent-asset" placeholder="100">
+                    <button id="u2-btn" class="btn btn-outline-success">Send</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="loading" class="d-flex justify-content-center align-items-center hide">
+        <div class="loader"></div>
+        <div class="loader"></div>
+        <div class="loader"></div>
+        <div class="loader"></div>
+        <div class="loader"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous">
+    </script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous">
+    </script>
+    <script>
+        $("#u1-btn").click(function () {
+            $.ajax({
+                method: 'POST',
+                url: '/transfer',
+                headers: {
+                    "Authorization": "Bearer <%= u1.token %>"
+                },
+                data: {
+                    to: "<%= u2.username %>",
+                    value: $("#u1-sent-asset").val()
+                },
+                error: () => {
+                    alert("Something bad happened....\nCheck your logs")
+                },
+                success: (data) => {
+                    console.log(data)
+                    stopLoading()
+                    if (data.success) {
+                        $("#u1-asset").text(data.u1.asset)
+                        $("#u2-asset").text(data.u2.asset)
+                    }
+                    alert(data.message)
+                }
+            })
+            startLoading()
+        })
+
+        $("#u2-btn").click(function () {
+            $.ajax({
+                method: 'POST',
+                url: '/transfer',
+                headers: {
+                    "Authorization": "Bearer <%= u2.token %>"
+                },
+                data: {
+                    to: "<%= u1.username %>",
+                    value: $("#u2-sent-asset").val()
+                },
+                error: () => {
+                    alert("Something bad happened....\nCheck your logs")
+                },
+                success: (data) => {
+                    console.log(data)
+                    stopLoading()
+                    if (data.success) {
+                        $("#u2-asset").text(data.u1.asset)
+                        $("#u1-asset").text(data.u2.asset)
+                    }
+                    alert(data.message)
+                }
+            })
+            startLoading()
+        })
+
+        var intervalId;
+
+        function startLoading() {
+            $("#loading").removeClass("hide")
+            const loaders = $(".loader")
+            let count = 2;
+            let height = 0;
+            let i = 0;
+            intervalId = setInterval(() => {
+                if (i % 5 == 0) {
+                    ++height
+                }
+                loaders[i % 5].style.height = (count * height) + "%"
+                i += 1
+                if (i >= 25) {
+                    i = 0
+                    height = -1
+                }
+            }, 100)
+        }
+
+        function stopLoading() {
+            clearInterval(intervalId)
+            $("#loading").addClass("hide")
+            const loaders = $(".loader")
+            for (loader of loaders)
+                loader.style.height = "0%"
+        }
+    </script>
+</body>
+
+</html>
