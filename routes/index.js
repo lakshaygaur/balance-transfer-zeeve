@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
     try {
         const users = hfc.getConfigSetting("users");
         const usernames = Object.keys(users);
-        logger.debug("Users Registered : ", usernames);
+        logger.info("Users Registered : ", usernames);
 
         const user1 = await controller.getInitialValue(users[usernames[0]]);
         const user2 = await controller.getInitialValue(users[usernames[1]]);
@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
             }
         });
     } catch (err) {
-        console.log(err);
+        console.log("Error :: ", err);
         logger.error(err);
         res.end("Network is not fully configured... Check all the steps");
     }
@@ -42,6 +42,7 @@ router.post('/transfer', async (req, res) => {
         const to = users[req.body.to];
         const asset = req.body.value;
 
+        logger.info(`Transfering ${asset} amount from ${from.username} to ${to.username}`);
         const result = await controller.transfer(from, to, asset);
 
         if (result.success) {
@@ -56,7 +57,8 @@ router.post('/transfer', async (req, res) => {
 
         res.json(result);
     } catch (err) {
-        logger.debug("Error : ", err)
+        console.log("Error :: ", err);
+        logger.error(err);
     }
 });
 

@@ -82,6 +82,7 @@
                 },
                 error: () => {
                     alert("Something bad happened....\nCheck your logs")
+                    stopLoading()
                 },
                 success: (data) => {
                     console.log(data)
@@ -109,6 +110,7 @@
                 },
                 error: () => {
                     alert("Something bad happened....\nCheck your logs")
+                    stopLoading()
                 },
                 success: (data) => {
                     console.log(data)

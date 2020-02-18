@@ -292,8 +292,8 @@ app.post('/channels/:channelName/chaincodes', async function(req, res) {
 	}
 
 	let message = await instantiate.instantiateChaincode(peers, channelName, chaincodeName, chaincodeVersion, chaincodeType, fcn, args, req.username, req.orgname);
-	if(message.success)
-		hfc.setConfigSetting("chaincodeName") = chaincodeName;
+	if(message.success || message.message.indexOf("exists") >= 0)
+		hfc.setConfigSetting("chaincodeName", chaincodeName);
 	res.send(message);
 });
 // Invoke transaction on chaincode on target peers

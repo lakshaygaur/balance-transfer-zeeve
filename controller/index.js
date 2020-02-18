@@ -1,7 +1,4 @@
 var hfc = require('fabric-client');
-const path = require('path');
-const yaml = require('js-yaml');
-const fs = require('fs');
 
 const query = require('../app/query');
 const invoke = require('../app/invoke-transaction');
@@ -9,50 +6,48 @@ const helper = require('../app/helper');
 const logger = helper.getLogger('Controller_Index');
 
 const channelName = hfc.getConfigSetting('channelName');
-const chaincodeName = hfc.getConfigSetting('chaincodeName');
-
-const getOrganizations = function () {
-    try {
-        filePath = path.join(__dirname, '../artifacts/network-config.yaml');
-        var doc = yaml.safeLoad(fs.readFileSync(filePath, 'utf8'));
-        return doc.organizations;
-    } catch (e) {
-        console.log(e);
-    }
-}
-const orgs = getOrganizations();
 
 const getInitialValue = async function (user) {
-    const org = orgs[user.orgName];
-    const peer = org.peers[0];
+    logger.info(" ****** Getting Initial User[", user.username, "] - [START] ******");
+
+    const chaincodeName = hfc.getConfigSetting('chaincodeName');
+    const client = await helper.getClientForOrg(user.orgName, user.username);
+    const peers = client.getPeersForOrg(client.getMspid());
+    const peer = peers[0].getName();
+
+    if(!peer) {
+        throw Error("Peer not found for organization - ", user.orgName)
+    }
 
     const result = await query.queryChaincode(peer, channelName, chaincodeName, [user.username], "query", user.username, user.orgName);
 
-    if (result.success && !parseInt(result.value.asset)) {
-        logger.log("Getting Initial User Assets : ", result);
-        error = result.value.asset.split('"')[3];
-        result.value.asset = error;
-    }
+    if (!result.success || !result.value)
+        throw result.message
+
+    logger.info(" ****** Getting Initial User[", user.username, "] - [END] ******");
     return result;
 };
 
-const transfer = async function (from, to, asset) {
-    const peers = [];
+const transfer = async function (sender, receiver, asset) {
+    logger.info(" ****** Transfering Assets - [START] ******");
 
-    let org = orgs[from.orgName];
-    peers.push(org.peers[0]);
+    const chaincodeName = hfc.getConfigSetting('chaincodeName');
+    const senderClient = await helper.getClientForOrg(sender.orgName, sender.username);
+    const receiverClient = await helper.getClientForOrg(receiver.orgName, receiver.username);
 
-    org = orgs[to.orgName];
-    peers.push(org.peers[0]);
+    const senderPeers = senderClient.getPeersForOrg(senderClient.getMspid());
+    const receiverPeers = receiverClient.getPeersForOrg(receiverClient.getMspid());
 
-    const args = [from.username, to.username, asset];
-    logger.log("Tranfering args : ", args);
+    const peers = [senderPeers[0], receiverPeers[0]]
 
-    const result = await invoke.invokeChaincode(peers, channelName, chaincodeName, "move", args, from.username, from.orgName);
+    const args = [sender.username, receiver.username, asset];
+    const result = await invoke.invokeChaincode(peers, channelName, chaincodeName, "move", args, sender.username, sender.orgName);
+    logger.info("Transfer Result : ", result);
 
-    logger.log("Transfer Reslut :", result);
-    if (result.success && result.message.indexOf("Error") >= 0) result.success = false;
-
+    if (result.success && result.message.indexOf("Error") >= 0)
+        result.success = false;
+    
+    logger.info(" ****** Transfering Assets - [END] ******");
     return result;
 };
 
