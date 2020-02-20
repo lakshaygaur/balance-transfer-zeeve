@@ -153,6 +153,12 @@
             for (loader of loaders)
                 loader.style.height = "0%"
         }
+
+        if ("<%= err %>" != '') {
+            setTimeout(() => {
+                alert("<%= err %>");
+            }, 100);
+        }
     </script>
 </body>
 
